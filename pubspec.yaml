@@ -1,8 +1,8 @@
 name: flutter_location
 description: A new flutter plugin project.
 version: 0.0.1
-author:
-homepage:
+author: zhangjianying<21961252@qq.com>
+homepage: https://blog.csdn.net/zhangjianying
 
 environment:
   sdk: ">=2.1.0 <3.0.0"
