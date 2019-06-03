@@ -1,14 +1,17 @@
 package com.talkweb.flutter_location;
 
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.text.TextUtils;
 
 
 import java.util.List;
@@ -43,6 +46,15 @@ public class GPSUtils {
         double latitude = 0.0;
         double longitude = 0.0;
 
+
+        //先判断是否开启地理位置获取 设置
+        if(!isLocationEnabled()){
+            Intent i = new Intent();
+            i.setAction(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+            mContext.startActivity(i);
+            return null;
+        }
+
         mOnLocationListener = onLocationResultListener;
 
         String locationProvider = null;
@@ -50,10 +62,10 @@ public class GPSUtils {
         //获取所有可用的位置提供器
         List<String> providers = locationManager.getProviders(true);
 
-        if (providers.contains(LocationManager.GPS_PROVIDER)) {
+        if (providers.contains(LocationManager.GPS_PROVIDER) && locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             //如果是GPS
             locationProvider = LocationManager.GPS_PROVIDER;
-        } else if (providers.contains(LocationManager.NETWORK_PROVIDER)) {
+        } else if (providers.contains(LocationManager.NETWORK_PROVIDER) && locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
             //如果是Network
             locationProvider = LocationManager.NETWORK_PROVIDER;
         } else {
@@ -75,6 +87,24 @@ public class GPSUtils {
         //监视地理位置变化
         locationManager.requestLocationUpdates(locationProvider, 3000, 1, locationListener);
         return null;
+    }
+
+    @TargetApi(Build.VERSION_CODES.CUPCAKE)
+    public boolean isLocationEnabled() {
+        int locationMode = 0;
+        String locationProviders;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            try {
+                locationMode = Settings.Secure.getInt(mContext.getContentResolver(), Settings.Secure.LOCATION_MODE);
+            } catch (Settings.SettingNotFoundException e) {
+                e.printStackTrace();
+                return false;
+            }
+            return locationMode != Settings.Secure.LOCATION_MODE_OFF;
+        } else {
+            locationProviders = Settings.Secure.getString(mContext.getContentResolver(), Settings.Secure.LOCATION_PROVIDERS_ALLOWED);
+            return !TextUtils.isEmpty(locationProviders);
+        }
     }
 
 
